@@ -2,6 +2,19 @@ import itertools
 import numpy as np
 import pandas as pd
 
+## Define a function to calculate the non-equilibrium free energy for a given distribution
+def get_F(spin_configs,p_dist,M,J,beta):
+
+	E_avg = 0.
+	for i in range(len(spin_configs)):
+		config = spin_configs[i]
+		p_i = p_dist[i]
+		E_avg = E_avg+p_i*get_H(config,M,J)
+
+	S = get_S(p_dist)
+	return(E_avg-S/beta)
+
+
 ## Define a function to calculate the hamiltonian for a given spin config
 def get_H(spin_config,M,J):
     length = len(spin_config)
@@ -43,13 +56,22 @@ def all_configs(n):
         print(i)
 
 ## Define function to calculate the actual EP
-def get_EP(W,p_array):
-    EP = 0
+def get_EP(W,p_array,dt):
+    EP = 0.
     n,m = np.shape(W)
     for i in range(n):
         for j in range(m):
-            EP = EP + 1/2*(W[i,j]*p_array[j]-W[j,i]*p_array[i])*np.log(W[i,j]*p_array[j]/(W[j,i]*p_array[i]))
+            EP = EP + 1/2.*(W[i,j]*p_array[j]-W[j,i]*p_array[i])*np.log(W[i,j]*p_array[j]/(W[j,i]*p_array[i]))*dt
     return(EP)
+
+## Define function to calculate the actual EF
+def get_EF(W,p_array,dt):
+    EF = 0.
+    n,m = np.shape(W)
+    for i in range(n):
+        for j in range(m):
+            EF = EF + 1/2.*(W[i,j]*p_array[j]-W[j,i]*p_array[i])*np.log(W[j,i]/W[i,j])*dt
+    return(EF)
 
 
 ## Define Function to calculate entropy
@@ -57,7 +79,7 @@ def get_S(dist):
     S = 0
     for p_i in dist:
         if p_i != 0.:
-            S = S - p_i*np.log2(p_i)
+            S = S - p_i*np.log(p_i)
     return(S)
 
 
